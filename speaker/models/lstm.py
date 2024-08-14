@@ -23,7 +23,12 @@ class LSTMWithProjection(nn.Module):
 class LSTMWithoutProjection(nn.Module):
     def __init__(self, input_dim, lstm_dim, proj_dim, num_lstm_layers):
         super().__init__()
-        self.lstm = nn.LSTM(input_size=input_dim, hidden_size=lstm_dim, num_layers=num_lstm_layers, batch_first=True)
+        self.lstm = nn.LSTM(
+            input_size=input_dim,
+            hidden_size=lstm_dim,
+            num_layers=num_lstm_layers,
+            batch_first=True,
+        )
         self.linear = nn.Linear(lstm_dim, proj_dim, bias=True)
         self.relu = nn.ReLU()
 
@@ -33,7 +38,14 @@ class LSTMWithoutProjection(nn.Module):
 
 
 class LSTMSpeakerEncoder(nn.Module):
-    def __init__(self, input_dim, proj_dim=256, lstm_dim=768, num_lstm_layers=3, use_lstm_with_projection=True):
+    def __init__(
+        self,
+        input_dim,
+        proj_dim=256,
+        lstm_dim=768,
+        num_lstm_layers=3,
+        use_lstm_with_projection=True,
+    ):
         super().__init__()
         self.use_lstm_with_projection = use_lstm_with_projection
         layers = []
@@ -44,7 +56,9 @@ class LSTMSpeakerEncoder(nn.Module):
                 layers.append(LSTMWithProjection(proj_dim, lstm_dim, proj_dim))
             self.layers = nn.Sequential(*layers)
         else:
-            self.layers = LSTMWithoutProjection(input_dim, lstm_dim, proj_dim, num_lstm_layers)
+            self.layers = LSTMWithoutProjection(
+                input_dim, lstm_dim, proj_dim, num_lstm_layers
+            )
 
         self._init_layers()
 
@@ -117,15 +131,19 @@ class LSTMSpeakerEncoder(nn.Module):
             if embed is None:
                 embed = self.inference(frames)
             else:
-                embed[cur_iter <= num_iters, :] += self.inference(frames[cur_iter <= num_iters, :, :])
+                embed[cur_iter <= num_iters, :] += self.inference(
+                    frames[cur_iter <= num_iters, :, :]
+                )
         return embed / num_iters
 
     # pylint: disable=unused-argument, redefined-builtin
-    def load_checkpoint(self, checkpoint_path: str, eval: bool = False, use_cuda: bool = False):
+    def load_checkpoint(
+        self, checkpoint_path: str, eval: bool = False, device: str = "cpu"
+    ):
         state = load_fsspec(checkpoint_path, map_location=torch.device("cpu"))
         self.load_state_dict(state["model"])
-        if use_cuda:
-            self.cuda()
+        if device != "cpu":
+            self.to(device)
         if eval:
             self.eval()
             assert not self.training

@@ -2,7 +2,8 @@ from dataclasses import asdict, dataclass, field
 from typing import Dict, List
 
 from .utils.coqpit import MISSING
-from .utils.shared_configs import BaseAudioConfig, BaseDatasetConfig, BaseTrainingConfig
+from .utils.shared_configs import (BaseAudioConfig, BaseDatasetConfig,
+                                   BaseTrainingConfig)
 
 
 @dataclass
@@ -11,7 +12,9 @@ class SpeakerEncoderConfig(BaseTrainingConfig):
 
     model: str = "speaker_encoder"
     audio: BaseAudioConfig = field(default_factory=BaseAudioConfig)
-    datasets: List[BaseDatasetConfig] = field(default_factory=lambda: [BaseDatasetConfig()])
+    datasets: List[BaseDatasetConfig] = field(
+        default_factory=lambda: [BaseDatasetConfig()]
+    )
     # model params
     model_params: Dict = field(
         default_factory=lambda: {
@@ -34,7 +37,9 @@ class SpeakerEncoderConfig(BaseTrainingConfig):
     )
 
     # training params
-    max_train_step: int = 1000000  # end training when number of training steps reaches this value.
+    max_train_step: int = (
+        1000000  # end training when number of training steps reaches this value.
+    )
     loss: str = "angleproto"
     grad_clip: float = 3.0
     lr: float = 0.0001

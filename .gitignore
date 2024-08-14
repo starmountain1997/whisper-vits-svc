@@ -1,1 +1,6 @@
 poetry.lock
+dataset_raw/
+data_svc/
+kernel_meta/
+*_pretrain/
+**/__pycache__/

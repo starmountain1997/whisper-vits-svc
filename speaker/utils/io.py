@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Union
 
 import fsspec
 import torch
+
 from .coqpit import Coqpit
 
 
@@ -55,7 +56,12 @@ def copy_model_files(config: Coqpit, out_path, new_fields):
 
 def load_fsspec(
     path: str,
-    map_location: Union[str, Callable, torch.device, Dict[Union[str, torch.device], Union[str, torch.device]]] = None,
+    map_location: Union[
+        str,
+        Callable,
+        torch.device,
+        Dict[Union[str, torch.device], Union[str, torch.device]],
+    ] = None,
     **kwargs,
 ) -> Any:
     """Like torch.load but can load from other locations (e.g. s3:// , gs://).
@@ -72,12 +78,16 @@ def load_fsspec(
         return torch.load(f, map_location=map_location, **kwargs)
 
 
-def load_checkpoint(model, checkpoint_path, use_cuda=False, eval=False):  # pylint: disable=redefined-builtin
+def load_checkpoint(
+    model, checkpoint_path, use_cuda=False, eval=False
+):  # pylint: disable=redefined-builtin
     try:
         state = load_fsspec(checkpoint_path, map_location=torch.device("cpu"))
     except ModuleNotFoundError:
         pickle_tts.Unpickler = RenamingUnpickler
-        state = load_fsspec(checkpoint_path, map_location=torch.device("cpu"), pickle_module=pickle_tts)
+        state = load_fsspec(
+            checkpoint_path, map_location=torch.device("cpu"), pickle_module=pickle_tts
+        )
     model.load_state_dict(state["model"])
     if use_cuda:
         model.cuda()
@@ -98,7 +108,9 @@ def save_fsspec(state: Any, path: str, **kwargs):
         torch.save(state, f, **kwargs)
 
 
-def save_model(config, model, optimizer, scaler, current_step, epoch, output_path, **kwargs):
+def save_model(
+    config, model, optimizer, scaler, current_step, epoch, output_path, **kwargs
+):
     if hasattr(model, "module"):
         model_state = model.module.state_dict()
     else:

@@ -150,12 +150,21 @@ class BaseAudioConfig(Coqpit):
             max_val=1000,
             alternative="win_length",
         )
-        check_argument("frame_shift_ms", c, restricted=True, min_val=1, max_val=1000, alternative="hop_length")
+        check_argument(
+            "frame_shift_ms",
+            c,
+            restricted=True,
+            min_val=1,
+            max_val=1000,
+            alternative="hop_length",
+        )
         check_argument("preemphasis", c, restricted=True, min_val=0, max_val=1)
         check_argument("min_level_db", c, restricted=True, min_val=-1000, max_val=10)
         check_argument("ref_level_db", c, restricted=True, min_val=0, max_val=1000)
         check_argument("power", c, restricted=True, min_val=1, max_val=5)
-        check_argument("griffin_lim_iters", c, restricted=True, min_val=10, max_val=1000)
+        check_argument(
+            "griffin_lim_iters", c, restricted=True, min_val=10, max_val=1000
+        )
 
         # normalization parameters
         check_argument("signal_norm", c, restricted=True)

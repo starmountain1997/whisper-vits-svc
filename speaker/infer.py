@@ -1,13 +1,14 @@
-import re
-import json
-import fsspec
-import torch
-import numpy as np
 import argparse
-
+import json
+import re
 from argparse import RawTextHelpFormatter
-from .models.lstm import LSTMSpeakerEncoder
+
+import fsspec
+import numpy as np
+import torch
+
 from .config import SpeakerEncoderConfig
+from .models.lstm import LSTMSpeakerEncoder
 from .utils.audio import AudioProcessor
 
 
@@ -100,9 +101,8 @@ if __name__ == "__main__":
     # print(embed.size)
     np.save(target_file, embed, allow_pickle=False)
 
-
-    if hasattr(speaker_encoder, 'module'):
+    if hasattr(speaker_encoder, "module"):
         state_dict = speaker_encoder.module.state_dict()
     else:
         state_dict = speaker_encoder.state_dict()
-        torch.save({'model': state_dict}, "model_small.pth")
+        torch.save({"model": state_dict}, "model_small.pth")

@@ -8,7 +8,8 @@ from dataclasses import MISSING as _MISSING
 from dataclasses import Field, asdict, dataclass, fields, is_dataclass, replace
 from pathlib import Path
 from pprint import pprint
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union, get_type_hints
+from typing import (Any, Dict, Generic, List, Optional, Type, TypeVar, Union,
+                    get_type_hints)
 
 T = TypeVar("T")
 MISSING: Any = "???"
@@ -47,7 +48,12 @@ def is_list(arg_type: Any) -> bool:
         bool: True if input type is `list`
     """
     try:
-        return arg_type is list or arg_type is List or arg_type.__origin__ is list or arg_type.__origin__ is List
+        return (
+            arg_type is list
+            or arg_type is List
+            or arg_type.__origin__ is list
+            or arg_type.__origin__ is List
+        )
     except AttributeError:
         return False
 
@@ -242,7 +248,9 @@ def _deserialize_union(x: Any, field_type: Type) -> Any:
     return x
 
 
-def _deserialize_primitive_types(x: Union[int, float, str, bool], field_type: Type) -> Union[int, float, str, bool]:
+def _deserialize_primitive_types(
+    x: Union[int, float, str, bool], field_type: Type
+) -> Union[int, float, str, bool]:
     """Deserialize python primitive types (float, int, str, bool).
     It handles `inf` values exclusively and keeps them float against int fields since int does not support inf values.
 
@@ -288,7 +296,9 @@ def _deserialize(x: Any, field_type: Any) -> Any:
         return field_type.deserialize_immutable(x)
     if is_primitive_type(field_type):
         return _deserialize_primitive_types(x, field_type)
-    raise ValueError(f" [!] '{type(x)}' value type of '{x}' does not match '{field_type}' field type.")
+    raise ValueError(
+        f" [!] '{type(x)}' value type of '{x}' does not match '{field_type}' field type."
+    )
 
 
 # Recursive setattr (supports dotted attr names)
@@ -353,7 +363,9 @@ class Serializable:
 
             if contract is not None:
                 if value is not None and not contract(value):
-                    raise ValueError(f"break the contract for {field.name}, {self.__class__.__name__}")
+                    raise ValueError(
+                        f"break the contract for {field.name}, {self.__class__.__name__}"
+                    )
 
     def validate(self):
         """validate if object can serialize / deserialize correctly."""
@@ -408,7 +420,9 @@ class Serializable:
                 init_kwargs[field.name] = value
                 continue
             if value == MISSING:
-                raise ValueError(f"deserialized with unknown value for {field.name} in {self.__name__}")
+                raise ValueError(
+                    f"deserialized with unknown value for {field.name} in {self.__name__}"
+                )
             value = _deserialize(value, field.type)
             init_kwargs[field.name] = value
         for k, v in init_kwargs.items():
@@ -443,7 +457,9 @@ class Serializable:
                 init_kwargs[field.name] = value
                 continue
             if value == MISSING:
-                raise ValueError(f"Deserialized with unknown value for {field.name} in {cls.__name__}")
+                raise ValueError(
+                    f"Deserialized with unknown value for {field.name} in {cls.__name__}"
+                )
             value = _deserialize(value, field.type)
             init_kwargs[field.name] = value
         return cls(**init_kwargs)
@@ -482,7 +498,11 @@ def _init_argparse(
         has_default = True
         default = field_default_factory()
 
-    if not has_default and not is_primitive_type(field_type) and not is_list(field_type):
+    if (
+        not has_default
+        and not is_primitive_type(field_type)
+        and not is_list(field_type)
+    ):
         # aggregate types (fields with a Coqpit subclass as type) are not supported without None
         return parser
     arg_prefix = field_name if arg_prefix == "" else f"{arg_prefix}.{field_name}"
@@ -499,7 +519,9 @@ def _init_argparse(
         # TODO: We need a more clear help msg for lists.
         if hasattr(field_type, "__args__"):  # if the list is hinted
             if len(field_type.__args__) > 1 and not relaxed_parser:
-                raise ValueError(" [!] Coqpit does not support multi-type hinted 'List'")
+                raise ValueError(
+                    " [!] Coqpit does not support multi-type hinted 'List'"
+                )
             list_field_type = field_type.__args__[0]
         else:
             raise ValueError(" [!] Coqpit does not support un-hinted 'List'")
@@ -510,7 +532,9 @@ def _init_argparse(
 
         if not has_default or field_default_factory is list:
             if not is_primitive_type(list_field_type) and not relaxed_parser:
-                raise NotImplementedError(" [!] Empty list with non primitive inner type is currently not supported.")
+                raise NotImplementedError(
+                    " [!] Empty list with non primitive inner type is currently not supported."
+                )
 
             # If the list's default value is None, the user can specify the entire list by passing multiple parameters
             parser.add_argument(
@@ -542,13 +566,18 @@ def _init_argparse(
             )
     elif issubclass(field_type, Serializable):
         return default.init_argparse(
-            parser, arg_prefix=arg_prefix, help_prefix=help_prefix, relaxed_parser=relaxed_parser
+            parser,
+            arg_prefix=arg_prefix,
+            help_prefix=help_prefix,
+            relaxed_parser=relaxed_parser,
         )
     elif isinstance(field_type(), bool):
 
         def parse_bool(x):
             if x not in ("true", "false"):
-                raise ValueError(f' [!] Value for boolean field must be either "true" or "false". Got "{x}".')
+                raise ValueError(
+                    f' [!] Value for boolean field must be either "true" or "false". Got "{x}".'
+                )
             return x == "true"
 
         parser.add_argument(
@@ -567,7 +596,9 @@ def _init_argparse(
         )
     else:
         if not relaxed_parser:
-            raise NotImplementedError(f" [!] '{field_type}' is not supported by arg_parser. Please file a bug report.")
+            raise NotImplementedError(
+                f" [!] '{field_type}' is not supported by arg_parser. Please file a bug report."
+            )
     return parser
 
 
@@ -732,7 +763,9 @@ class Coqpit(Serializable, MutableMapping):
 
     @classmethod
     def init_from_argparse(
-        cls, args: Optional[Union[argparse.Namespace, List[str]]] = None, arg_prefix: str = "coqpit"
+        cls,
+        args: Optional[Union[argparse.Namespace, List[str]]] = None,
+        arg_prefix: str = "coqpit",
     ) -> "Coqpit":
         """Create a new Coqpit instance from argparse input.
 
@@ -758,7 +791,9 @@ class Coqpit(Serializable, MutableMapping):
             has_default = False
             default = None
             field_default = field.default if field.default is not _MISSING else None
-            field_default_factory = field.default_factory if field.default_factory is not _MISSING else None
+            field_default_factory = (
+                field.default_factory if field.default_factory is not _MISSING else None
+            )
             if field_default:
                 has_default = True
                 default = field_default
@@ -766,7 +801,9 @@ class Coqpit(Serializable, MutableMapping):
                 has_default = True
                 default = field_default_factory()
 
-            if has_default and (not is_primitive_type(field.type) or is_list(field.type)):
+            if has_default and (
+                not is_primitive_type(field.type) or is_list(field.type)
+            ):
                 args_with_lists_processed[field.name] = default
 
         args_dict = vars(args)
@@ -780,7 +817,9 @@ class Coqpit(Serializable, MutableMapping):
         return cls(**args_with_lists_processed)
 
     def parse_args(
-        self, args: Optional[Union[argparse.Namespace, List[str]]] = None, arg_prefix: str = "coqpit"
+        self,
+        args: Optional[Union[argparse.Namespace, List[str]]] = None,
+        arg_prefix: str = "coqpit",
     ) -> None:
         """Update config values from argparse arguments with some meta-programming ✨.
 
@@ -805,7 +844,9 @@ class Coqpit(Serializable, MutableMapping):
             try:
                 rgetattr(self, k)
             except (TypeError, AttributeError) as e:
-                raise Exception(f" [!] '{k}' not exist to override from argparse.") from e
+                raise Exception(
+                    f" [!] '{k}' not exist to override from argparse."
+                ) from e
 
             rsetattr(self, k, v)
 
@@ -830,11 +871,15 @@ class Coqpit(Serializable, MutableMapping):
         """
         if not args:
             # If args was not specified, parse from sys.argv
-            parser = self.init_argparse(arg_prefix=arg_prefix, relaxed_parser=relaxed_parser)
+            parser = self.init_argparse(
+                arg_prefix=arg_prefix, relaxed_parser=relaxed_parser
+            )
             args, unknown = parser.parse_known_args()
         if isinstance(args, list):
             # If a list was passed in (eg. the second result of `parse_known_args`, run that through argparse first to get a parsed Namespace
-            parser = self.init_argparse(arg_prefix=arg_prefix, relaxed_parser=relaxed_parser)
+            parser = self.init_argparse(
+                arg_prefix=arg_prefix, relaxed_parser=relaxed_parser
+            )
             args, unknown = parser.parse_known_args(args)
 
         self.parse_args(args)
@@ -940,7 +985,9 @@ def check_argument(
         ), f" [!] prequested fields {prerequest} for {name} are not defined."
     # check if the path exists
     if is_path:
-        assert os.path.exists(c[name]), f' [!] path for {name} ("{c[name]}") does not exist.'
+        assert os.path.exists(
+            c[name]
+        ), f' [!] path for {name} ("{c[name]}") does not exist.'
     # skip the rest if the alternative field is defined.
     if alternative in c.keys() and c[alternative] is not None:
         return
@@ -949,6 +996,8 @@ def check_argument(
         if max_val is not None:
             assert c[name] <= max_val, f" [!] {name} is larger than max value {max_val}"
         if min_val is not None:
-            assert c[name] >= min_val, f" [!] {name} is smaller than min value {min_val}"
+            assert (
+                c[name] >= min_val
+            ), f" [!] {name} is smaller than min value {min_val}"
         if enum_list is not None:
             assert c[name].lower() in enum_list, f" [!] {name} is not a valid value"

@@ -1,13 +1,14 @@
 import os
 import random
 
+IndexBySinger = False
+
 
 def print_error(info):
     print(f"\033[31m File isn't existed: {info}\033[0m")
 
 
-IndexBySinger = False
-if __name__ == "__main__":
+def main():
     os.makedirs("./files/", exist_ok=True)
 
     rootPath = "./data_svc/waves-32k/"
@@ -20,7 +21,7 @@ if __name__ == "__main__":
             if file.endswith(".wav"):
                 file = file[:-4]
 
-                if (IndexBySinger == False):
+                if IndexBySinger == False:
                     path_spk = f"./data_svc/speaker/{spks}/{file}.spk.npy"
                 else:
                     path_spk = f"./data_svc/singer/{spks}.spk.npy"
@@ -51,7 +52,8 @@ if __name__ == "__main__":
                     has_error = 1
                 if has_error == 0:
                     all_items.append(
-                        f"{path_wave}|{path_spec}|{path_pitch}|{path_hubert}|{path_whisper}|{path_spk}")
+                        f"{path_wave}|{path_spec}|{path_pitch}|{path_hubert}|{path_whisper}|{path_spk}"
+                    )
 
     random.shuffle(all_items)
     valids = all_items[:10]
