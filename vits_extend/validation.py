@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 
-def validate(hp, args, generator, discriminator, valloader, stft, writer, step, device):
+def validate(hp, generator, discriminator, valloader, stft, writer, step, device):
     generator.eval()
     discriminator.eval()
     torch.backends.cudnn.benchmark = False

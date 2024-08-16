@@ -6,7 +6,9 @@ import torch.nn as nn
 
 from torch.autograd import Function
 from torch.nn.utils import weight_norm
-
+import torch_npu
+from loguru import logger
+logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 
 class GradientReversalFunction(Function):
     @staticmethod

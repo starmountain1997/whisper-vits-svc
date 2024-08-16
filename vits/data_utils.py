@@ -1,15 +1,19 @@
 import os
-import numpy as np
 import random
+
+import numpy as np
 import torch
 import torch.utils.data
-
+import torch_npu
+from loguru import logger
 
 from vits.utils import load_wav_to_torch
 
+logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
+
 
 def load_filepaths(filename, split="|"):
-    with open(filename, encoding='utf-8') as f:
+    with open(filename, encoding="utf-8") as f:
         filepaths = [line.strip().split(split) for line in f]
     return filepaths
 
@@ -22,7 +26,7 @@ class TextAudioSpeakerSet(torch.utils.data.Dataset):
         self.segment_size = hparams.segment_size
         self.hop_length = hparams.hop_length
         self._filter()
-        print(f'----------{len(self.items)}----------')
+        print(f"----------{len(self.items)}----------")
 
     def _filter(self):
         lengths = []
@@ -44,9 +48,9 @@ class TextAudioSpeakerSet(torch.utils.data.Dataset):
                 continue
             temp = np.load(pitch)
             usel = int(temp.shape[0] - 1)  # useful length
-            if (usel < items_min):
+            if usel < items_min:
                 continue
-            if (usel >= items_max):
+            if usel >= items_max:
                 usel = items_max
             items_new.append([wavpath, spec, pitch, vec, ppg, spk, usel])
             lengths.append(usel)
@@ -55,7 +59,9 @@ class TextAudioSpeakerSet(torch.utils.data.Dataset):
 
     def read_wav(self, filename):
         audio, sampling_rate = load_wav_to_torch(filename)
-        assert sampling_rate == self.sampling_rate, f"error: this sample rate of {filename} is {sampling_rate}"
+        assert (
+            sampling_rate == self.sampling_rate
+        ), f"error: this sample rate of {filename} is {sampling_rate}"
         audio_norm = audio / self.max_wav_value
         audio_norm = audio_norm.unsqueeze(0)
         return audio_norm
@@ -93,8 +99,8 @@ class TextAudioSpeakerSet(torch.utils.data.Dataset):
         spk = torch.FloatTensor(spk)
 
         len_pit = pit.size()[0]
-        len_vec = vec.size()[0] - 2 # for safe
-        len_ppg = ppg.size()[0] - 2 # for safe
+        len_vec = vec.size()[0] - 2  # for safe
+        len_ppg = ppg.size()[0] - 2  # for safe
         len_min = min(len_pit, len_vec)
         len_min = min(len_min, len_ppg)
         len_wav = len_min * self.hop_length
@@ -143,18 +149,15 @@ class TextAudioSpeakerCollate:
         max_wav_len = max([x[1].size(1) for x in batch])
         spe_lengths = torch.LongTensor(len(batch))
         wav_lengths = torch.LongTensor(len(batch))
-        spe_padded = torch.FloatTensor(
-            len(batch), batch[0][0].size(0), max_spe_len)
+        spe_padded = torch.FloatTensor(len(batch), batch[0][0].size(0), max_spe_len)
         wav_padded = torch.FloatTensor(len(batch), 1, max_wav_len)
         spe_padded.zero_()
         wav_padded.zero_()
 
         max_ppg_len = max([x[2].size(0) for x in batch])
         ppg_lengths = torch.FloatTensor(len(batch))
-        ppg_padded = torch.FloatTensor(
-            len(batch), max_ppg_len, batch[0][2].size(1))
-        vec_padded = torch.FloatTensor(
-            len(batch), max_ppg_len, batch[0][3].size(1))
+        ppg_padded = torch.FloatTensor(len(batch), max_ppg_len, batch[0][2].size(1))
+        vec_padded = torch.FloatTensor(len(batch), max_ppg_len, batch[0][3].size(1))
         pit_padded = torch.FloatTensor(len(batch), max_ppg_len)
         ppg_padded.zero_()
         vec_padded.zero_()
@@ -262,8 +265,7 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
         indices = []
         if self.shuffle:
             for bucket in self.buckets:
-                indices.append(torch.randperm(
-                    len(bucket), generator=g).tolist())
+                indices.append(torch.randperm(len(bucket), generator=g).tolist())
         else:
             for bucket in self.buckets:
                 indices.append(list(range(len(bucket))))
@@ -272,7 +274,7 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
         for i in range(len(self.buckets)):
             bucket = self.buckets[i]
             len_bucket = len(bucket)
-            if (len_bucket == 0):
+            if len_bucket == 0:
                 continue
             ids_bucket = indices[i]
             num_samples_bucket = self.num_samples_per_bucket[i]
@@ -286,14 +288,14 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
             )
 
             # subsample
-            ids_bucket = ids_bucket[self.rank:: self.num_replicas]
+            ids_bucket = ids_bucket[self.rank :: self.num_replicas]
 
             # batching
             for j in range(len(ids_bucket) // self.batch_size):
                 batch = [
                     bucket[idx]
                     for idx in ids_bucket[
-                        j * self.batch_size: (j + 1) * self.batch_size
+                        j * self.batch_size : (j + 1) * self.batch_size
                     ]
                 ]
                 batches.append(batch)

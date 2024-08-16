@@ -4,3 +4,5 @@ data_svc/
 kernel_meta/
 *_pretrain/
 **/__pycache__/
+files/
+logs/

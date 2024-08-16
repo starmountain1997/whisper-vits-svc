@@ -23,6 +23,7 @@ def get_device(use_npu: bool):
         device = "npu" if torch.npu.is_available() else "cpu"
         device_num = torch.npu.device_count() if device == "npu" else 1
     else:
+        torch.backends.cudnn.benchmark = True
         device = "cuda" if torch.cuda.is_available() else "cpu"
         device_num = torch.cuda.device_count() if device == "cuda" else 1
 

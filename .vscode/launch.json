@@ -26,6 +26,20 @@
                 "16",
                 "--use_npu"
             ]
+        },
+        {
+            "name": "train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "svc_trainer.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-c",
+                "configs/base_npu.yaml",
+                "-n",
+                "sovits5.0",
+                "--use_npu"
+            ]
         }
     ]
 }

@@ -1,8 +1,10 @@
 import torch
 import torch.utils.data
-
+import torch_npu
 from librosa.filters import mel as librosa_mel_fn
+from loguru import logger
 
+logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 MAX_WAV_VALUE = 32768.0
 
 
@@ -81,7 +83,9 @@ def spec_to_mel_torch(spec, n_fft, num_mels, sampling_rate, fmin, fmax):
     dtype_device = str(spec.dtype) + "_" + str(spec.device)
     fmax_dtype_device = str(fmax) + "_" + dtype_device
     if fmax_dtype_device not in mel_basis:
-        mel = librosa_mel_fn(sr=sampling_rate, n_fft=n_fft, n_mels=num_mels, fmin=fmin, fmax=fmax)
+        mel = librosa_mel_fn(
+            sr=sampling_rate, n_fft=n_fft, n_mels=num_mels, fmin=fmin, fmax=fmax
+        )
         mel_basis[fmax_dtype_device] = torch.from_numpy(mel).to(
             dtype=spec.dtype, device=spec.device
         )
@@ -103,7 +107,9 @@ def mel_spectrogram_torch(
     fmax_dtype_device = str(fmax) + "_" + dtype_device
     wnsize_dtype_device = str(win_size) + "_" + dtype_device
     if fmax_dtype_device not in mel_basis:
-        mel = librosa_mel_fn(sr=sampling_rate, n_fft=n_fft, n_mels=num_mels, fmin=fmin, fmax=fmax)
+        mel = librosa_mel_fn(
+            sr=sampling_rate, n_fft=n_fft, n_mels=num_mels, fmin=fmin, fmax=fmax
+        )
         mel_basis[fmax_dtype_device] = torch.from_numpy(mel).to(
             dtype=y.dtype, device=y.device
         )

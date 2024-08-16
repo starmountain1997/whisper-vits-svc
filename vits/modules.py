@@ -2,7 +2,9 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from vits import commons
-
+import torch_npu
+from loguru import logger
+logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 
 LRELU_SLOPE = 0.1
 
