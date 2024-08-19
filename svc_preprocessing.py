@@ -1,16 +1,12 @@
 import multiprocessing
 import os
-from functools import partial
 from typing import Callable
 
 import click
 import torch
 from loguru import logger
 
-from prepare import (preprocess_crepe, preprocess_hubert, preprocess_ppg,
-                     preprocess_resample, preprocess_speaker,
-                     preprocess_speaker_ave, preprocess_spec, preprocess_train,
-                     preprocess_zzz)
+from prepare import preprocess_crepe
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -50,13 +46,11 @@ def call_torch_mp(
                 if f.endswith(".wav")
             ]
     if p_num == 1:
-        task_args = [
-            (
-                [os.path.join(wav_path, f"{file}.wav") for file in files],
-                [os.path.join(output_path, f"{file}.{output_ext}") for file in files],
-            )
-        ]
-        partial(func, device=device)(*task_args)
+        func(
+            device,
+            [os.path.join(wav_path, f"{file}.wav") for file in files],
+            [os.path.join(output_path, f"{file}.{output_ext}") for file in files],
+        )
     else:
         files_chunk = [files[i::p_num] for i in range(p_num)]
         task_args = [
@@ -90,18 +84,18 @@ def main(thread_count, use_npu):
     logger.info(
         f"Device: {device}, Device number: {device_num}, thread_count: {thread_count}."
     )
-    preprocess_resample.main(
-        os.path.join(PROJECT_DIR, "dataset_raw"),
-        os.path.join(PROJECT_DIR, "data_svc/waves-32k"),
-        32000,
-        thread_count,
-    )
-    preprocess_resample.main(
-        os.path.join(PROJECT_DIR, "dataset_raw"),
-        os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
-        16000,
-        thread_count,
-    )
+    # preprocess_resample.main(
+    #     os.path.join(PROJECT_DIR, "dataset_raw"),
+    #     os.path.join(PROJECT_DIR, "data_svc/waves-32k"),
+    #     32000,
+    #     thread_count,
+    # )
+    # preprocess_resample.main(
+    #     os.path.join(PROJECT_DIR, "dataset_raw"),
+    #     os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
+    #     16000,
+    #     thread_count,
+    # )
     call_torch_mp(
         preprocess_crepe.compute_f0,
         os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
@@ -110,41 +104,41 @@ def main(thread_count, use_npu):
         device_num,
         output_ext="pit",
     )
-    call_torch_mp(
-        preprocess_ppg.pred_ppg,
-        os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
-        os.path.join(PROJECT_DIR, "data_svc/whisper"),
-        device,
-        device_num,
-        output_ext="ppg",
-    )
+    # call_torch_mp(
+    #     preprocess_ppg.pred_ppg,
+    #     os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
+    #     os.path.join(PROJECT_DIR, "data_svc/whisper"),
+    #     device,
+    #     device_num,
+    #     output_ext="ppg",
+    # )
 
-    call_torch_mp(
-        preprocess_hubert.pred_vec,
-        os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
-        os.path.join(PROJECT_DIR, "data_svc/hubert"),
-        device,
-        device_num,
-        output_ext="vec",
-    )
-    call_torch_mp(
-        preprocess_speaker.extract_speaker_embeddings,
-        os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
-        os.path.join(PROJECT_DIR, "data_svc/speaker"),
-        device,
-        device_num,
-    )
-    preprocess_speaker_ave.main(
-        os.path.join(PROJECT_DIR, "data_svc/speaker"),
-        os.path.join(PROJECT_DIR, "data_svc/singer"),
-    )
-    preprocess_spec.main(
-        os.path.join(PROJECT_DIR, "data_svc/waves-32k"),
-        os.path.join(PROJECT_DIR, "data_svc/specs"),
-        thread_count,
-    )
-    preprocess_train.main()
-    preprocess_zzz.main()
+    # call_torch_mp(
+    #     preprocess_hubert.pred_vec,
+    #     os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
+    #     os.path.join(PROJECT_DIR, "data_svc/hubert"),
+    #     device,
+    #     device_num,
+    #     output_ext="vec",
+    # )
+    # call_torch_mp(
+    #     preprocess_speaker.extract_speaker_embeddings,
+    #     os.path.join(PROJECT_DIR, "data_svc/waves-16k"),
+    #     os.path.join(PROJECT_DIR, "data_svc/speaker"),
+    #     device,
+    #     device_num,
+    # )
+    # preprocess_speaker_ave.main(
+    #     os.path.join(PROJECT_DIR, "data_svc/speaker"),
+    #     os.path.join(PROJECT_DIR, "data_svc/singer"),
+    # )
+    # preprocess_spec.main(
+    #     os.path.join(PROJECT_DIR, "data_svc/waves-32k"),
+    #     os.path.join(PROJECT_DIR, "data_svc/specs"),
+    #     thread_count,
+    # )
+    # preprocess_train.main()
+    # preprocess_zzz.main()
 
 
 if __name__ == "__main__":

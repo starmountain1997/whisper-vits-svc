@@ -1,10 +1,7 @@
 import torch
 import torch.utils.data
-import torch_npu
 from librosa.filters import mel as librosa_mel_fn
-from loguru import logger
 
-logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 MAX_WAV_VALUE = 32768.0
 
 

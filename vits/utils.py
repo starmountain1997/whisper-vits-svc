@@ -1,10 +1,7 @@
 import numpy as np
 import torch
-import torch_npu
-from loguru import logger
 from scipy.io.wavfile import read
 
-logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 MATPLOTLIB_FLAG = False
 
 

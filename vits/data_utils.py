@@ -4,12 +4,8 @@ import random
 import numpy as np
 import torch
 import torch.utils.data
-import torch_npu
 from loguru import logger
 
-from vits.utils import load_wav_to_torch
-
-logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 
 
 def load_filepaths(filename, split="|"):
