@@ -16,13 +16,29 @@ def slice_pitch_segments(x, ids_str, segment_size=4):
 
 def rand_slice_segments_with_pitch(x, pitch, x_lengths=None, segment_size=4):
     b, d, t = x.size()
+    
     if x_lengths is None:
         x_lengths = t
+    
+    # Ensure x_lengths is a tensor of shape [b]
+    if not torch.is_tensor(x_lengths):
+        x_lengths = torch.tensor([x_lengths] * b, device=x.device)
+    
+    # Calculate the maximum possible start index for each sequence
     ids_str_max = x_lengths - segment_size + 1
-    ids_str = (torch.rand([b]).to(device=x.device) * ids_str_max).to(dtype=torch.long)
+    
+    # Ensure no negative values in ids_str_max
+    ids_str_max = torch.clamp(ids_str_max, min=1)
+    
+    # Generate random start indices for each sequence
+    ids_str = (torch.rand([b], device=x.device) * ids_str_max).to(dtype=torch.long)
+    
+    # Slice the segments from x and pitch
     ret = slice_segments(x, ids_str, segment_size)
     ret_pitch = slice_pitch_segments(pitch, ids_str, segment_size)
+    
     return ret, ret_pitch, ids_str
+
 
 
 def rand_spec_segments(x, x_lengths=None, segment_size=4):

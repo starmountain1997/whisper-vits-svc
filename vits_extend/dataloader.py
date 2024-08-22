@@ -1,11 +1,8 @@
-import torch_npu
-from loguru import logger
 from torch.utils.data import DataLoader
 
 from vits.data_utils import (DistributedBucketSampler, TextAudioSpeakerCollate,
                              TextAudioSpeakerSet)
 
-logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 
 
 def create_dataloader_train(hps, n_gpus, rank):

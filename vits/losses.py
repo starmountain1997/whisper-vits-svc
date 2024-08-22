@@ -1,7 +1,4 @@
 import torch
-import torch_npu
-from loguru import logger
-logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 
 def feature_loss(fmap_r, fmap_g):
     loss = 0

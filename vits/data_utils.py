@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.utils.data
 from loguru import logger
+from vits.utils import load_wav_to_torch
 
 
 

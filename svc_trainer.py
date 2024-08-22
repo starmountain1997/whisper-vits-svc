@@ -34,7 +34,7 @@ def main(config, checkpoint_path, name, use_npu):
 
     torch.manual_seed(hp.train.seed)
 
-    if device_num > 1:
+    if device_num > 1: # FIXME: 
         mp.spawn(
             train,
             nprocs=device_num,

@@ -1,6 +1,4 @@
-import logging
 import os
-import time
 
 import torch
 import torch.nn as nn
@@ -61,17 +59,10 @@ def load_model(model, saved_state_dict):
 
 
 def train(rank, device, device_num, name, chkpt_path, hp, hp_str):
-    if device == "npu":
-        import torch_npu
-
-        logger.info(f"import torch_npu: {torch_npu.__version__}.")
-        torch.npu.manual_seed(hp.train.seed)
-    elif device == "cuda":
-        torch.cuda.manual_seed(hp.train.seed)
-    else:
-        raise ValueError
-
     if device_num > 1:
+        if device=="npu":
+            import torch_npu
+            logger.info(f"rank {rank} import torch_npu: {torch_npu.__version__}.")
         init_process_group(
             backend=hp.dist_config.dist_backend,
             init_method=hp.dist_config.dist_url,
@@ -113,23 +104,12 @@ def train(rank, device, device_num, name, chkpt_path, hp, hp_str):
         center=False,
         device=device,
     )
-    # define logger, writer, valloader, stft at rank_zero
+    # define writer, valloader, stft at rank_zero
     if rank == 0:
         pth_dir = os.path.join(hp.log.pth_dir, name)
         log_dir = os.path.join(hp.log.log_dir, name)
         os.makedirs(pth_dir, exist_ok=True)
         os.makedirs(log_dir, exist_ok=True)
-
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            handlers=[
-                logging.FileHandler(
-                    os.path.join(log_dir, "%s-%d.log" % (name, time.time()))
-                ),
-                logging.StreamHandler(),
-            ],
-        )
         writer = MyWriter(hp, log_dir)
         valloader = create_dataloader_eval(hp)
 

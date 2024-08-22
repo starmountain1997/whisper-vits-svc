@@ -10,9 +10,6 @@ from vits.utils import f0_to_coarse
 from vits_decoder.generator import Generator
 from vits.modules_grl import SpeakerClassifier
 
-import torch_npu
-from loguru import logger
-logger.info(f"{__file__} import torch_npu: {torch_npu.__version__}.")
 class TextEncoder(nn.Module):
     def __init__(self,
                  in_channels,
