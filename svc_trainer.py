@@ -34,7 +34,7 @@ def main(config, checkpoint_path, name, use_npu):
 
     torch.manual_seed(hp.train.seed)
 
-    if device_num > 1: # FIXME: 
+    if device_num > 1: 
         mp.spawn(
             train,
             nprocs=device_num,
@@ -45,10 +45,11 @@ def main(config, checkpoint_path, name, use_npu):
                 checkpoint_path,
                 hp,
                 hp_str,
+                use_npu
             ),
         )
     else:
-        train(0, device, device_num, name, checkpoint_path, hp, hp_str)
+        train(0, device, 1, name, checkpoint_path, hp, hp_str)
 
 
 if __name__ == "__main__":

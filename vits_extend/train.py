@@ -1,4 +1,6 @@
+import glob
 import os
+import re
 
 import torch
 import torch.nn as nn
@@ -58,11 +60,15 @@ def load_model(model, saved_state_dict):
     return model
 
 
-def train(rank, device, device_num, name, chkpt_path, hp, hp_str):
+def train(
+    rank, device, device_num, name, chkpt_path, hp, hp_str, use_npu: bool = False
+):
+    if use_npu:
+        import torch_npu
+        logger.info(f"rank {rank} import torch_npu: {torch_npu.__version__}.")
+        torch_npu.npu.set_device(rank)
+
     if device_num > 1:
-        if device=="npu":
-            import torch_npu
-            logger.info(f"rank {rank} import torch_npu: {torch_npu.__version__}.")
         init_process_group(
             backend=hp.dist_config.dist_backend,
             init_method=hp.dist_config.dist_url,
@@ -166,9 +172,7 @@ def train(rank, device, device_num, name, chkpt_path, hp, hp_str):
 
         if rank == 0 and epoch % hp.log.eval_interval == 0:
             with torch.no_grad():
-                validate(
-                    hp, model_g, model_d, valloader, stft, writer, step, device
-                )
+                validate(hp, model_g, model_d, valloader, stft, writer, step, device)
 
         if rank == 0:
             loader = tqdm.tqdm(trainloader, desc="Loading train data")
